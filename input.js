@@ -4,8 +4,11 @@ import dateFormat from './dateformat.js';
 
 function findNextTabStop(el) {
   var universe = document.querySelectorAll('input, button, select, textarea, a[href]');
+  console.log('len: ' + universe.length + ' universe: ', universe);
   var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
+  console.log('list: ', list);
   var index = list.indexOf(el);
+  console.log('index: ' + index);
   return list[index + 1] || list[0];
 }
 
