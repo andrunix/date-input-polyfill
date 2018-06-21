@@ -2,6 +2,13 @@ import thePicker from './picker.js';
 import locales from './locales.js';
 import dateFormat from './dateformat.js';
 
+function findNextTabStop(el) {
+  var universe = document.querySelectorAll('input, button, select, textarea, a[href]');
+  var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
+  var index = list.indexOf(el);
+  return list[index + 1] || list[0];
+}
+
 export default class Input {
   constructor(input) {
     this.element = input;
@@ -71,9 +78,17 @@ export default class Input {
       const date = new Date();
 
       switch(e.keyCode) {
-        case 9:
-        case 27:
-          thePicker.hide();
+      case 9:
+      case 27:
+        thePicker.hide();
+        var nextEl = findNextTabStop(this.element);
+        console.log('nextEl is: ', nextEl);
+        
+        if (nextEl) {
+          console.log('setting focus');
+          nextEl.focus();
+        }
+        
           break;
         case 38:
           if(this.element.valueAsDate) {
