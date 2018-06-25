@@ -2,18 +2,26 @@ import thePicker from './picker.js';
 import locales from './locales.js';
 import dateFormat from './dateformat.js';
 
-function findNextTabStop(el) {
-  var universe = document.querySelectorAll('input, button, select, textarea, a[href]');
-  console.log('len: ' + universe.length + ' universe: ', universe);
-  var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
-  console.log('list: ', list);
-  var index = list.indexOf(el);
-  console.log('index: ' + index);
-  return list[index + 1] || list[0];
+const ESCAPE = 27;
+const TAB = 9;
+const UP = 39;
+const DOWN = 40;
+
+
+function findTabStop(forward, el) {
+  const universe = document.querySelectorAll('input, button, select, textarea, a[href]');
+  const list = Array.prototype.filter.call(universe, (item) => item.tabIndex >= "0");
+  const index = list.indexOf(el);
+  const next = index + (forward ? 1 : -1);
+  return list[next] || list[0];
 }
+
+const findNextTabStop = (el) => findTabStop(true, el);
+const findPreviousTabStop = (el) => findTabStop(false, el);
 
 export default class Input {
   constructor(input) {
+    this.escWasPressed = false;
     this.element = input;
     this.element.setAttribute(`data-has-picker`, ``);
 
@@ -56,7 +64,6 @@ export default class Input {
             if(!this.element.value) {
               return NaN;
             }
-
             return this.element.valueAsDate.valueOf();
           },
           set: val=> {
@@ -71,7 +78,10 @@ export default class Input {
     const showPicker = (e) => {
       const elm = this.element;
       elm.locale = this.localeText;
-      const didAttach = thePicker.attachTo(elm);
+      if (!this.escWasPressed) {
+        const didAttach = thePicker.attachTo(elm);
+      }
+      this.escWasPressed = false;
     };
     this.element.addEventListener(`focus`, showPicker);
     this.element.addEventListener(`mouseup`, showPicker);
@@ -81,36 +91,48 @@ export default class Input {
       const date = new Date();
 
       switch(e.keyCode) {
-      case 9:
-      case 27:
+      case TAB:  // tab
+        // e.stopPropagation();
+        e.preventDefault();
         thePicker.hide();
-        var nextEl = findNextTabStop(this.element);
-        console.log('nextEl is: ', nextEl);
-        
-        if (nextEl) {
-          console.log('setting focus');
-          nextEl.focus();
+
+        let nextEl = this.element;
+
+        if (e.shiftKey) { // backtab
+          nextEl = findPreviousTabStop(this.element);
+        } else {
+          nextEl = findNextTabStop(this.element);
         }
         
-          break;
-        case 38:
-          if(this.element.valueAsDate) {
-            date.setDate(this.element.valueAsDate.getDate() + 1);
-            this.element.valueAsDate = date;
-            thePicker.pingInput();
-          }
-          break;
-        case 40:
-          if(this.element.valueAsDate) {
-            date.setDate(this.element.valueAsDate.getDate() - 1);
-            this.element.valueAsDate = date;
-            thePicker.pingInput();
-          }
-          break;
-        default:
-          break;
+        if (nextEl) {
+          nextEl.focus();
+        }
+        break;
+        
+      case ESCAPE: // esc
+        this.escWasPressed = true;
+        thePicker.hide();
+        this.element.focus();  // return the focus to the input element
+        break;
+        
+      case UP:
+        if(this.element.valueAsDate) {
+          date.setDate(this.element.valueAsDate.getDate() + 1);
+          this.element.valueAsDate = date;
+          thePicker.pingInput();
+        }
+        break;
+        
+      case DOWN:
+        if(this.element.valueAsDate) {
+          date.setDate(this.element.valueAsDate.getDate() - 1);
+          this.element.valueAsDate = date;
+          thePicker.pingInput();
+        }
+        break;
+      default:
+        break;
       }
-
       thePicker.sync();
     });
 
