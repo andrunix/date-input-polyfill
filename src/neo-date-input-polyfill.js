@@ -1,4 +1,4 @@
-import './date-input-polyfill.scss';
+import './neo-date-input-polyfill.scss';
 import Input from './input.js';
 
 const addPickers = () => {

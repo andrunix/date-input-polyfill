@@ -8,17 +8,6 @@ const UP = 39;
 const DOWN = 40;
 
 
-function findTabStop(forward, el) {
-  const universe = document.querySelectorAll('input, button, select, textarea, a[href]');
-  const list = Array.prototype.filter.call(universe, (item) => item.tabIndex >= "0");
-  const index = list.indexOf(el);
-  const next = index + (forward ? 1 : -1);
-  return list[next] || list[0];
-}
-
-const findNextTabStop = (el) => findTabStop(true, el);
-const findPreviousTabStop = (el) => findTabStop(false, el);
-
 export default class Input {
   constructor(input) {
     this.escWasPressed = false;
@@ -73,6 +62,17 @@ export default class Input {
       }
     );
 
+    const findTabStop = (forward, el) => {
+      const universe = document.querySelectorAll('input, button, select, textarea, a[href]');
+      const list = Array.prototype.filter.call(universe, (item) => item.tabIndex >= "0");
+      const index = list.indexOf(el);
+      const next = index + (forward ? 1 : -1);
+      return list[next] || list[0];
+    };
+
+    const findNextTabStop = (el) => findTabStop(true, el);
+    const findPreviousTabStop = (el) => findTabStop(false, el);
+
     // Open the picker when the input get focus,
     // also on various click events to capture it in all corner cases.
     const showPicker = (e) => {
@@ -92,7 +92,6 @@ export default class Input {
 
       switch(e.keyCode) {
       case TAB:  // tab
-        // e.stopPropagation();
         e.preventDefault();
         thePicker.hide();
 
