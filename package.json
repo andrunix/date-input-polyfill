@@ -1,6 +1,6 @@
 {
   "name": "neo-date-input-polyfill",
-  "version": "2.16.0",
+  "version": "2.16.1",
   "description": "Automatically adds datepickers to input[type=date] on IE, Firefox, and OS X Safari.",
   "main": "dist/neo-date-input-polyfill.min.js",
   "contributors": [
