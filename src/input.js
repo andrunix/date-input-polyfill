@@ -6,7 +6,7 @@ const ESCAPE = 27;
 const TAB = 9;
 const UP = 39;
 const DOWN = 40;
-
+const SLASH = 191;
 
 export default class Input {
   constructor(input) {
@@ -129,15 +129,51 @@ export default class Input {
           thePicker.pingInput();
         }
         break;
+
+      case SLASH:
+        if (this.element.value.endsWith('/'))
+          e.preventDefault();
+        break;
       default:
+        // console.log('keycode: ', e.keyCode);
         break;
       }
       thePicker.sync();
     });
 
     this.element.addEventListener(`keyup`, e => {
+      const val = this.element.value;
+      
+      // here's some custom code to determine if you are typing in a valid date
+      // console.log('value: ' + val, ' code: ', e.keyCode);
+
+      if (this.element.value.length === 2 && e.keyCode === SLASH) {
+        this.element.value = "0" + this.element.value;
+      }
+
+      // so, it is possible to have a value of like, 2/ which is valid
+      if (val.length === 2 && val[1] !== '/' && !isNaN(parseInt(val))) {
+        this.element.value += '/';
+      }
+      
+      // see if we have an existing slash, split on it
+      if (val.length === 5 && val[2] === '/' && val[4] !== '/') {
+        const pieces = val.split('/');
+        if (!isNaN(parseInt(pieces[1]) && !isNaN(parseInt(pieces[1])))) {
+          this.element.value += "/";
+        }
+      }
       thePicker.sync();
     });
+
+    this.element.addEventListener(`keypress`, e => {
+      const validKey = (key) => (!(key !== TAB && key !== ESCAPE &&  (key < 47 || key > 57))) ;
+      if (!validKey(e.keyCode)) {
+        // console.log('bad value! ' + e.keyCode);
+        e.preventDefault();
+      }
+    });
+    
   }
 
   getLocaleText() {
