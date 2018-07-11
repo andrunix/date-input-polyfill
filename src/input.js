@@ -147,8 +147,16 @@ export default class Input {
       // here's some custom code to determine if you are typing in a valid date
       // console.log('value: ' + val, ' code: ', e.keyCode);
 
-      if (this.element.value.length === 2 && e.keyCode === SLASH) {
-        this.element.value = "0" + this.element.value;
+      if (this.element.value.length === 2) {
+        if (parseInt(this.element.value) > 12) {
+          this.element.value = '12';
+        }
+        if (parseInt(this.element.value) < 1) {
+          this.element.value = '01';
+        }
+        if (e.keyCode === SLASH) {
+          this.element.value = "0" + this.element.value;
+        }
       }
 
       // so, it is possible to have a value of like, 2/ which is valid
@@ -159,7 +167,15 @@ export default class Input {
       // see if we have an existing slash, split on it
       if (val.length === 5 && val[2] === '/' && val[4] !== '/') {
         const pieces = val.split('/');
-        if (!isNaN(parseInt(pieces[1]) && !isNaN(parseInt(pieces[1])))) {
+        if (!isNaN(parseInt(pieces[0]) && !isNaN(parseInt(pieces[1])))) {
+
+          // before we add that slash, let's check the day against the number of days in the month
+          const validateDaysInMonth = (day, month) => {
+            const days = [ '01', 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ] ;
+            return (days[month] <= day) ? days[month] : day;
+          }
+          pieces[1] = validateDaysInMonth(parseInt(pieces[1]), parseInt(pieces[0]));
+          this.element.value = pieces.join('/');
           this.element.value += "/";
         }
       }
