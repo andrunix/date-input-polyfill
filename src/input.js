@@ -141,9 +141,29 @@ export default class Input {
       thePicker.sync();
     });
 
+    const validateMonth = month => (month > 0 && month < 13) ? ('0' + month).slice(-2) : '01';
+    const validateDaysInMonth = (day, month) => {
+      const days = [ '01', 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+      if (day === 0) {
+        return '01';
+      } else {
+        return ('0' + ((days[month] <= day) ? days[month] : day)).slice(-2);
+      }
+    }
+    
+    const fullDateValidation = function(val) {
+      const pieces = val.split('/');
+      let value = val;
+      if (pieces.length === 3 && !isNaN(parseInt(pieces[0]) && !isNaN(parseInt(pieces[1])))) {
+        pieces[0] = validateMonth(parseInt(pieces[0]));
+        pieces[1] = validateDaysInMonth(parseInt(pieces[1]), parseInt(pieces[0]));
+        value = pieces.join('/');
+      }
+      return value;
+    }
+
     this.element.addEventListener(`keyup`, e => {
       const val = this.element.value;
-      
       // here's some custom code to determine if you are typing in a valid date
       // console.log('value: ' + val, ' code: ', e.keyCode);
 
@@ -166,18 +186,23 @@ export default class Input {
       
       // see if we have an existing slash, split on it
       if (val.length === 5 && val[2] === '/' && val[4] !== '/') {
+        console.log('A');
         const pieces = val.split('/');
         if (!isNaN(parseInt(pieces[0]) && !isNaN(parseInt(pieces[1])))) {
-
           // before we add that slash, let's check the day against the number of days in the month
-          const validateDaysInMonth = (day, month) => {
-            const days = [ '01', 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ] ;
-            return (days[month] <= day) ? days[month] : day;
-          }
           pieces[1] = validateDaysInMonth(parseInt(pieces[1]), parseInt(pieces[0]));
           this.element.value = pieces.join('/');
           this.element.value += "/";
         }
+      }
+
+      // finally, if they have a full date entered, with slashes,
+      // select the month or day portions, and enter an invalid value,
+      // update with the nearest
+
+      const n = (val.match( /\//g ) || []).length;
+      if (val.length === 10 && n === 2) {
+        this.element.value = fullDateValidation(val);
       }
       thePicker.sync();
     });
@@ -189,7 +214,10 @@ export default class Input {
         e.preventDefault();
       }
     });
-    
+
+    this.element.addEventListener(`blur`, e => {
+      this.element.value = fullDateValidation(this.element.value);
+    });
   }
 
   getLocaleText() {
